@@ -189,20 +189,20 @@ Every language built on Parse() follows the same path:
 Source Text
     │
     ▼
-┌─────────┐  token stream   ┌─────────┐   AST          ┌───────────┐
-│  Lexer  │ ──────────────► │ Parser  │ ─────────────► │ Semantics │
-└─────────┘                 └─────────┘                └─────────────┘
-                                                               │
-                                                   enriched AST (PARSE_ATTR_*)
-                                                               │
-                                                               ▼
-                                                        ┌───────────┐
-                                                        │  CodeGen  │ ──► .h + .cpp
-                                                        └───────────┘          │
-                                                                                ▼
-                                                                          ┌──────────┐
-                                                                          │   Zig    │ ──► native binary
-                                                                          └──────────┘
+┌─────────┐  token stream   ┌─────────┐   AST        ┌───────────┐
+│  Lexer  │ ──────────────► │ Parser  │ ───────────► │ Semantics │
+└─────────┘                 └─────────┘              └───────────┘
+                                                           │
+                                               enriched AST (PARSE_ATTR_*)
+                                                           │
+                                                           ▼
+                                                    ┌───────────┐
+                                                    │  CodeGen  │ ──► .h + .cpp
+                                                    └───────────┘          │
+                                                                           ▼
+                                                                      ┌──────────┐
+                                                                      │   Zig    │ ──► native binary
+                                                                      └──────────┘
 ```
 
 A single `TParse` object drives every stage. There is no language knowledge hardcoded anywhere in the toolkit. The config is the language.
