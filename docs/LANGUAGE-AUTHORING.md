@@ -1,4 +1,4 @@
-# Language Authoring Guide — Parse()™
+# Language Authoring Guide - Parse()™
 
 This guide explains how to define a programming language using the Parse() toolkit. It is written for developers who want to understand *why* things work the way they do, not just copy-paste patterns. Read it top to bottom the first time. After that it works as a reference.
 
@@ -38,7 +38,7 @@ Every stage is driven by a single object: **`TParse`**. You configure it once an
 | **Grammar** | How tokens combine into AST nodes: prefix/infix/statement handlers | `TParseParser` |
 | **Emit** | How AST nodes become C++23 text | `TParseCodeGen` |
 
-There is a fourth optional surface — **Semantics** — for languages that need scope analysis, symbol resolution, and type checking. It is not required to get a language working, but you will need it for anything beyond toy programs.
+There is a fourth optional surface - **Semantics** - for languages that need scope analysis, symbol resolution, and type checking. It is not required to get a language working, but you will need it for anything beyond toy programs.
 
 You configure all surfaces through one fluent chain:
 
@@ -106,7 +106,7 @@ LParse.Config()
 
 ### Operators and Delimiters
 
-Operators are non-identifier, non-whitespace character sequences. The lexer uses **longest-match** automatically — you do not need to order them, but declaring multi-character operators before single-character ones makes the intent obvious:
+Operators are non-identifier, non-whitespace character sequences. The lexer uses **longest-match** automatically - you do not need to order them, but declaring multi-character operators before single-character ones makes the intent obvious:
 
 ```delphi
 LParse.Config()
@@ -141,7 +141,7 @@ LParse.Config()
   .AddStringStyle('''', '''', PARSE_KIND_STRING, True);
 ```
 
-`PARSE_KIND_STRING` is the constant `'literal.string'`. You can emit any kind string you like — if you need to distinguish string types, use different kinds:
+`PARSE_KIND_STRING` is the constant `'literal.string'`. You can emit any kind string you like - if you need to distinguish string types, use different kinds:
 
 ```delphi
 .AddStringStyle('"',  '"',  'literal.string',      True)
@@ -178,7 +178,7 @@ LParse.Config()
   .SetBinaryPrefix('0b', 'literal.integer'); // binary: 0b1010
 ```
 
-Multiple hex and binary prefixes are all valid at the same time. The kind string can be anything — typically you use `'literal.integer'` for all numeric bases since they all produce an integer value.
+Multiple hex and binary prefixes are all valid at the same time. The kind string can be anything - typically you use `'literal.integer'` for all numeric bases since they all produce an integer value.
 
 ### Structural Tokens
 
@@ -202,30 +202,30 @@ Every token has a potential **prefix** meaning (it starts an expression) and a p
 ### Understanding Prefix vs Infix
 
 Take the minus sign `-`:
-- In `-5`, the minus is a **prefix** — it starts an expression (unary negation).
-- In `a - b`, the minus is an **infix** — it sits between two expressions (subtraction).
+- In `-5`, the minus is a **prefix** - it starts an expression (unary negation).
+- In `a - b`, the minus is an **infix** - it sits between two expressions (subtraction).
 
 The same token can be both. You register it twice, once as prefix, once as infix.
 
 Take `if`:
-- `if condition then ...` — this is a **statement**, not an expression. Statements do not return a value and are handled separately.
+- `if condition then ...` - this is a **statement**, not an expression. Statements do not return a value and are handled separately.
 
 ### The Three Handler Types
 
-**Prefix handler** — called when a token appears at the start of an expression:
+**Prefix handler** - called when a token appears at the start of an expression:
 ```delphi
 RegisterPrefix(ATokenKind, ANodeKind, AHandler)
 ```
 The handler receives `AParser: TParseParserBase` and must return a `TParseASTNodeBase`. The current token when the handler is called is the token that triggered the dispatch.
 
-**Infix handler** — called when a token appears after an expression:
+**Infix handler** - called when a token appears after an expression:
 ```delphi
 RegisterInfixLeft(ATokenKind, ABindingPower, ANodeKind, AHandler)
 RegisterInfixRight(ATokenKind, ABindingPower, ANodeKind, AHandler)
 ```
 The handler receives `AParser` and `ALeft: TParseASTNodeBase` (the already-parsed left side). Left-associative means `a + b + c` parses as `(a + b) + c`. Right-associative means `a := b := c` parses as `a := (b := c)`, which is correct for assignment.
 
-**Statement handler** — called when a token appears at the start of a line/statement:
+**Statement handler** - called when a token appears at the start of a line/statement:
 ```delphi
 RegisterStatement(ATokenKind, ANodeKind, AHandler)
 ```
@@ -245,7 +245,7 @@ Binding power is just a number. Higher number = tighter binding = higher precede
 | 40 | `=`, `<>`, `<`, `>`, `<=`, `>=` |
 | 50 | unary `-`, `not` |
 
-The exact numbers do not matter — only the relative order does. Use gaps so you can insert operators later.
+The exact numbers do not matter - only the relative order does. Use gaps so you can insert operators later.
 
 ### Building a Node
 
@@ -257,11 +257,11 @@ Inside every handler you build an AST node. The pattern is always:
 4. Recursively parse sub-expressions or sub-statements and add them as children.
 5. Return the node.
 
-**`AParser.CreateNode()`** — creates a node using the kind string and current token that the dispatch engine set up before calling your handler. This is almost always what you want.
+**`AParser.CreateNode()`** - creates a node using the kind string and current token that the dispatch engine set up before calling your handler. This is almost always what you want.
 
-**`AParser.CreateNode(ANodeKind)`** — creates a node with an explicit kind, token = current. Use this for secondary structural nodes you create inside a handler.
+**`AParser.CreateNode(ANodeKind)`** - creates a node with an explicit kind, token = current. Use this for secondary structural nodes you create inside a handler.
 
-**`AParser.CreateNode(ANodeKind, AToken)`** — explicit kind and explicit token. Use this when you have already consumed the token you want to associate with the node.
+**`AParser.CreateNode(ANodeKind, AToken)`** - explicit kind and explicit token. Use this when you have already consumed the token you want to associate with the node.
 
 ### Parsing Sub-Expressions
 
@@ -271,7 +271,7 @@ Inside a handler, to parse a sub-expression:
 LNode.AddChild(TParseASTNode(AParser.ParseExpression(0)));
 ```
 
-The `0` means "parse at minimum binding power" — accept any expression. To enforce that the right side binds tighter (left-associative infix):
+The `0` means "parse at minimum binding power" - accept any expression. To enforce that the right side binds tighter (left-associative infix):
 
 ```delphi
 // In a left-assoc infix handler for '+':
@@ -289,7 +289,7 @@ LNode.AddChild(TParseASTNode(AParser.ParseExpression(AParser.CurrentInfixPowerRi
 
 ### Complete Example: Binary Operator
 
-This is the shortest useful pattern — registering `+` as a left-associative binary operator that builds an `expr.binary` node:
+This is the shortest useful pattern - registering `+` as a left-associative binary operator that builds an `expr.binary` node:
 
 ```delphi
 LParse.Config().RegisterInfixLeft('op.plus', 20, 'expr.binary',
@@ -318,7 +318,7 @@ LParse.Config().RegisterBinaryOp('op.plus', 20, '+');
 
 ### Complete Example: Unary Prefix Operator
 
-Unary negation — the `-` token as a prefix:
+Unary negation - the `-` token as a prefix:
 
 ```delphi
 LParse.Config().RegisterPrefix('op.minus', 'expr.unary',
@@ -334,7 +334,7 @@ LParse.Config().RegisterPrefix('op.minus', 'expr.unary',
   end);
 ```
 
-The `50` passed to `ParseExpression` is the binding power floor — only tokens with binding power greater than 50 will be consumed as part of the right operand. Since unary operators have the highest precedence, using 50 (higher than any binary operator) ensures the operand is tightly bound.
+The `50` passed to `ParseExpression` is the binding power floor - only tokens with binding power greater than 50 will be consumed as part of the right operand. Since unary operators have the highest precedence, using 50 (higher than any binary operator) ensures the operand is tightly bound.
 
 ### Complete Example: Statement Handler
 
@@ -352,7 +352,7 @@ LParse.Config().RegisterStatement('keyword.while', 'stmt.while',
     LNode.AddChild(TParseASTNode(AParser.ParseExpression(0)));
     // Expect 'do'
     AParser.Expect('keyword.do');
-    // Parse the body — could be a single statement or a begin/end block
+    // Parse the body - could be a single statement or a begin/end block
     LNode.AddChild(TParseASTNode(AParser.ParseStatement()));
     Result := LNode;
   end);
@@ -422,10 +422,10 @@ Every handler builds AST nodes. The result is a tree where:
 - Expression nodes have children for their operands.
 
 A node has:
-- A **kind string** — what kind of thing it is.
-- A **token** — the source location (file, line, column) and the triggering text.
-- **Children** — ordered list of child nodes (owned, freed with parent).
-- **Attributes** — a string-keyed dictionary of `TValue` values. This is where you store semantic data, operator symbols, declaration names, etc.
+- A **kind string** - what kind of thing it is.
+- A **token** - the source location (file, line, column) and the triggering text.
+- **Children** - ordered list of child nodes (owned, freed with parent).
+- **Attributes** - a string-keyed dictionary of `TValue` values. This is where you store semantic data, operator symbols, declaration names, etc.
 
 ### Attributes
 
@@ -468,7 +468,7 @@ After the semantic pass runs, the engine writes standard attributes onto nodes. 
 
 ## Stage 3: The Semantic Surface (Optional)
 
-The semantic stage walks the enriched AST after parsing, resolves symbols, checks types, and writes `PARSE_ATTR_*` attributes onto nodes. After the semantic pass, the AST is self-sufficient — the codegen reads everything it needs directly off the nodes.
+The semantic stage walks the enriched AST after parsing, resolves symbols, checks types, and writes `PARSE_ATTR_*` attributes onto nodes. After the semantic pass, the AST is self-sufficient - the codegen reads everything it needs directly off the nodes.
 
 You register a handler for each node kind that needs semantic processing:
 
@@ -494,7 +494,7 @@ LParse.Config().RegisterSemanticRule('stmt.var_decl',
 
 **Key rule:** When your handler has finished processing the node, you must drive traversal of any children you care about. If you do nothing, the children are not visited. If you want the engine to visit all children automatically, call `ASem.VisitChildren(ANode)`. If you have already visited specific children yourself, do not call `VisitChildren` on them again.
 
-For node kinds you do not register a handler for, the engine automatically visits all children. So if you only care about declarations and calls, you only need handlers for those — everything else gets walked through transparently.
+For node kinds you do not register a handler for, the engine automatically visits all children. So if you only care about declarations and calls, you only need handlers for those - everything else gets walked through transparently.
 
 ### Scope Management
 
@@ -513,13 +513,13 @@ ASem.PopScope(ACloseToken);
 ### Symbol Declaration and Lookup
 
 ```delphi
-// Declare — returns False if already declared in current scope
+// Declare - returns False if already declared in current scope
 ASem.DeclareSymbol(LName, ANode);
 
-// Lookup — searches current scope and all parents
+// Lookup - searches current scope and all parents
 var LDeclNode: TParseASTNodeBase;
 if ASem.LookupSymbol(LName, LDeclNode) then
-  // found — LDeclNode is the declaring node
+  // found - LDeclNode is the declaring node
 else
   ASem.AddSemanticError(ANode, 'S200', 'Undefined: ' + LName);
 ```
@@ -569,7 +569,7 @@ LParse.Config().RegisterEmitter('stmt.while',
   end);
 ```
 
-`AGen.EmitNode(AChild)` dispatches the child node through the same emitter registry — it finds the emitter registered for the child's kind and calls it. `AGen.EmitChildren(ANode)` does this for all children in order.
+`AGen.EmitNode(AChild)` dispatches the child node through the same emitter registry - it finds the emitter registered for the child's kind and calls it. `AGen.EmitChildren(ANode)` does this for all children in order.
 
 ### The IR Fluent API
 
@@ -694,7 +694,7 @@ The second parameter `ADefault` is the original `ExprToString` function. You can
 
 ### The Context Store
 
-Emit handlers sometimes need to share state across calls — for example, knowing the current function name to emit a correct `return` statement. Use the context store:
+Emit handlers sometimes need to share state across calls - for example, knowing the current function name to emit a correct `return` statement. Use the context store:
 
 ```delphi
 // In the function header emitter:
@@ -848,7 +848,7 @@ LParse.Config()
   // --- GRAMMAR ---
 
   // Register standard literal prefixes (identifier, integer, real, string)
-  // (call as a separate statement — not chainable from Config() setup above
+  // (call as a separate statement - not chainable from Config() setup above
   //  since it returns TParse, but shown here conceptually)
 ```
 
@@ -910,7 +910,7 @@ int main() {
 }
 ```
 
-Every language in the toolkit — Pascal, Lua, Basic, Scheme — is just this pattern scaled up. The same three surfaces, the same handler types, the same AST building blocks.
+Every language in the toolkit - Pascal, Lua, Basic, Scheme - is just this pattern scaled up. The same three surfaces, the same handler types, the same AST building blocks.
 
 ## Worked Example: Pascal `if/then/else`
 
@@ -922,7 +922,7 @@ else
   writeln('negative');
 ```
 
-### Step 1: Lexer — tokens produced
+### Step 1: Lexer - tokens produced
 
 ```
 keyword.if      "if"
@@ -934,7 +934,7 @@ keyword.writeln "writeln"
 ...
 ```
 
-### Step 2: Grammar — parsing
+### Step 2: Grammar - parsing
 
 The parser calls `ParseStatement()`. It sees `keyword.if`, looks up the statement handler, and dispatches it.
 
@@ -959,7 +959,7 @@ AST result:
     [literal.string] text="'negative'"
 ```
 
-### Step 3: Emit — C++23 output
+### Step 3: Emit - C++23 output
 
 The `stmt.if` emitter:
 ```delphi
