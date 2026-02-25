@@ -387,7 +387,7 @@ The license includes an explicit patent grant, meaning contributors cannot later
 
 <div align="center">
 
-**Parse()**™ Compiler Construction Toolkit.
+**Parse()™** Compiler Construction Toolkit.
 
 Copyright © 2025-present tinyBigGAMES™ LLC
 All Rights Reserved.
