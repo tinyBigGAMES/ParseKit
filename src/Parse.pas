@@ -245,6 +245,8 @@ type
 
 implementation
 
+{$R Parse.ResData.res}
+
 const
   LANG_CONFIG_FILENAME = 'lang.toml';
   CONFIG_DIR_NAME      = 'config';
