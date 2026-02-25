@@ -1367,10 +1367,11 @@ begin
 
   // Find zig executable
   LZigExe := TParseUtils.GetZigExePath();
-  if LZigExe = '' then
+  if (LZigExe = '') or (not TFile.Exists(LZigExe)) then
   begin
     if Assigned(FErrors) then
-      FErrors.Add(esError, ERR_ZIGBUILD_ZIG_NOT_FOUND, RSZigBuildZigNotFound);
+      FErrors.Add(esError, ERR_ZIGBUILD_ZIG_NOT_FOUND,
+        RSZigBuildZigNotFound, [LZigExe]);
     Exit;
   end;
 
@@ -1393,6 +1394,9 @@ begin
   if FLastExitCode <> 0 then
   begin
     Status(RSZigBuildFailedWithCode, [FLastExitCode]);
+    if Assigned(FErrors) then
+      FErrors.Add(esError, ERR_ZIGBUILD_BUILD_FAILED,
+        RSZigBuildFailed, [FLastExitCode]);
     Exit;
   end;
 

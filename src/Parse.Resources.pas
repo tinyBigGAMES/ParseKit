@@ -199,7 +199,7 @@ resourcestring
   RSZigBuildNoSources       = 'No source files specified';
   RSZigBuildSaveFailed      = 'Failed to save build.zig: %s';
   RSZigBuildFileNotFound    = 'build.zig not found: %s';
-  RSZigBuildZigNotFound     = 'Zig executable not found';
+  RSZigBuildZigNotFound     = 'Zig executable not found (expected: %s)';
   RSZigBuildFailed          = 'Zig build failed with exit code: %d';
   RSZigBuildNoProjectName   = 'Project name not set';
   RSZigBuildExeNotFound     = 'Executable not found: %s';
