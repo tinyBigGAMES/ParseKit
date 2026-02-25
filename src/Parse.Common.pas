@@ -223,13 +223,19 @@ type
     // ---- Low-level primitives ----
 
     // Append indent + AText + newline
-    procedure EmitLine(const AText: string; const ATarget: TParseSourceFile = sfSource); virtual; abstract;
+    procedure EmitLine(const AText: string; const ATarget: TParseSourceFile = sfSource); overload; virtual; abstract;
+    // Formatted overload — AText is a Format() template, AArgs are the arguments
+    procedure EmitLine(const AText: string; const AArgs: array of const; const ATarget: TParseSourceFile = sfSource); overload; virtual; abstract;
 
     // Append AText verbatim — no indent, no newline
-    procedure Emit(const AText: string; const ATarget: TParseSourceFile = sfSource); virtual; abstract;
+    procedure Emit(const AText: string; const ATarget: TParseSourceFile = sfSource); overload; virtual; abstract;
+    // Formatted overload — AText is a Format() template, AArgs are the arguments
+    procedure Emit(const AText: string; const AArgs: array of const; const ATarget: TParseSourceFile = sfSource); overload; virtual; abstract;
 
     // Append AText truly verbatim (for $cppstart/$cpp escape hatch blocks)
-    procedure EmitRaw(const AText: string; const ATarget: TParseSourceFile = sfSource); virtual; abstract;
+    procedure EmitRaw(const AText: string; const ATarget: TParseSourceFile = sfSource); overload; virtual; abstract;
+    // Formatted overload — AText is a Format() template, AArgs are the arguments
+    procedure EmitRaw(const AText: string; const AArgs: array of const; const ATarget: TParseSourceFile = sfSource); overload; virtual; abstract;
 
     // Indentation control
     procedure IndentIn(); virtual; abstract;
@@ -309,7 +315,9 @@ type
       const AArgs: TArray<string>): TParseIRBase; virtual; abstract;
 
     // Verbatim C++ statement line
-    function Stmt(const ARawText: string): TParseIRBase; virtual; abstract;
+    function Stmt(const ARawText: string): TParseIRBase; overload; virtual; abstract;
+    // Formatted overload — ARawText is a Format() template, AArgs are the arguments
+    function Stmt(const ARawText: string; const AArgs: array of const): TParseIRBase; overload; virtual; abstract;
 
     // return;
     function Return(): TParseIRBase; overload; virtual; abstract;

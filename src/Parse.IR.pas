@@ -56,13 +56,16 @@ type
     // ---- TParseIRBase virtuals (low-level primitives) ----
 
     // Append indent + AText + newline
-    procedure EmitLine(const AText: string; const ATarget: TParseSourceFile = sfSource); override;
+    procedure EmitLine(const AText: string; const ATarget: TParseSourceFile = sfSource); overload; override;
+    procedure EmitLine(const AText: string; const AArgs: array of const; const ATarget: TParseSourceFile = sfSource); overload; override;
 
     // Append AText verbatim — no indent, no newline
-    procedure Emit(const AText: string; const ATarget: TParseSourceFile = sfSource); override;
+    procedure Emit(const AText: string; const ATarget: TParseSourceFile = sfSource); overload; override;
+    procedure Emit(const AText: string; const AArgs: array of const; const ATarget: TParseSourceFile = sfSource); overload; override;
 
     // Append AText truly verbatim (for $cppstart/$cpp escape hatch blocks)
-    procedure EmitRaw(const AText: string; const ATarget: TParseSourceFile = sfSource); override;
+    procedure EmitRaw(const AText: string; const ATarget: TParseSourceFile = sfSource); overload; override;
+    procedure EmitRaw(const AText: string; const AArgs: array of const; const ATarget: TParseSourceFile = sfSource); overload; override;
 
     // Indentation control
     procedure IndentIn(); override;
@@ -142,7 +145,8 @@ type
       const AArgs: TArray<string>): TParseIRBase; override;
 
     // Verbatim C++ statement line
-    function Stmt(const ARawText: string): TParseIRBase; override;
+    function Stmt(const ARawText: string): TParseIRBase; overload; override;
+    function Stmt(const ARawText: string; const AArgs: array of const): TParseIRBase; overload; override;
 
     // return;
     function Return(): TParseIRBase; overload; override;
@@ -321,16 +325,34 @@ begin
   GetBuffer(ATarget).AppendLine(GetIndent() + AText);
 end;
 
+procedure TParseIR.EmitLine(const AText: string;
+  const AArgs: array of const; const ATarget: TParseSourceFile);
+begin
+  EmitLine(Format(AText, AArgs), ATarget);
+end;
+
 procedure TParseIR.Emit(const AText: string;
   const ATarget: TParseSourceFile);
 begin
   GetBuffer(ATarget).Append(AText);
 end;
 
+procedure TParseIR.Emit(const AText: string;
+  const AArgs: array of const; const ATarget: TParseSourceFile);
+begin
+  Emit(Format(AText, AArgs), ATarget);
+end;
+
 procedure TParseIR.EmitRaw(const AText: string;
   const ATarget: TParseSourceFile);
 begin
   GetBuffer(ATarget).Append(AText);
+end;
+
+procedure TParseIR.EmitRaw(const AText: string;
+  const AArgs: array of const; const ATarget: TParseSourceFile);
+begin
+  EmitRaw(Format(AText, AArgs), ATarget);
 end;
 
 procedure TParseIR.IndentIn();
@@ -566,6 +588,12 @@ begin
   CloseFuncSignature();
   EmitLine(ARawText, sfSource);
   Result := Self;
+end;
+
+function TParseIR.Stmt(const ARawText: string;
+  const AArgs: array of const): TParseIRBase;
+begin
+  Result := Stmt(Format(ARawText, AArgs));
 end;
 
 function TParseIR.Return(): TParseIRBase;
