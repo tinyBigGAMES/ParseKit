@@ -393,7 +393,7 @@ begin
   // Emit a #line directive so debuggers map generated C++ back to the Pascal source.
   // Written directly to the buffer at column 0 — preprocessor directives must
   // never be indented.
-  if FLineDirectives then
+  if FLineDirectives and not FInFuncSignature then
   begin
     LTok := ANode.GetToken();
     if (LTok.Filename <> '') and (LTok.Line > 0) then
