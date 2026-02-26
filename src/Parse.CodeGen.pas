@@ -46,6 +46,9 @@ type
     // Language config — not owned. Passed through to each TParseIR.
     FConfig:    TParseLangConfig;
 
+    // Mirrors the line directive setting — applied to each TParseIR in AcquireIR().
+    FLineDirectives: Boolean;
+
     // Creates a new TParseIR for AUnitName, wires errors + config,
     // registers it in FUnits + FUnitOrder, and sets FCurrentIR.
     // Returns the new IR instance.
@@ -57,6 +60,10 @@ type
 
     // Configuration — must be set before Generate() / GenerateUnit()
     procedure SetConfig(const AConfig: TParseLangConfig);
+
+    // Enable or disable #line directive emission. Applied to each TParseIR
+    // instance created by AcquireIR().
+    procedure SetLineDirectives(const AEnabled: Boolean);
 
     // ---- Single-unit path ----
 
@@ -116,8 +123,9 @@ begin
   inherited;
   FUnits     := TObjectDictionary<string, TParseIR>.Create([doOwnsValues]);
   FUnitOrder := TStringList.Create();
-  FCurrentIR := nil;
-  FConfig    := nil;
+  FCurrentIR      := nil;
+  FConfig         := nil;
+  FLineDirectives := False;
 end;
 
 destructor TParseCodeGen.Destroy();
@@ -132,6 +140,11 @@ end;
 procedure TParseCodeGen.SetConfig(const AConfig: TParseLangConfig);
 begin
   FConfig := AConfig;
+end;
+
+procedure TParseCodeGen.SetLineDirectives(const AEnabled: Boolean);
+begin
+  FLineDirectives := AEnabled;
 end;
 
 function TParseCodeGen.AcquireIR(const AUnitName: string): TParseIR;
@@ -149,6 +162,9 @@ begin
   // Wire language config so IR can dispatch emit handlers
   if FConfig <> nil then
     LIR.SetConfig(FConfig);
+
+  // Wire line directive setting
+  LIR.SetLineDirectives(FLineDirectives);
 
   // Register and track
   FUnits.Add(AUnitName, LIR);

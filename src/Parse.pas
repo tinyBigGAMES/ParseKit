@@ -169,7 +169,8 @@ type
     FSubsystem:     TParseSubsystemType;
     FOptimizeLevel: TParseOptimizeLevel;
     FBuildMode:     TParseBuildMode;
-    FRawOutput:     Boolean;
+    FRawOutput:        Boolean;
+    FLineDirectives:   Boolean;
 
     // Owned components
     FConfig:  TParseLangConfig;
@@ -224,6 +225,7 @@ type
 
     // Callbacks
     procedure SetRawOutput(const AValue: Boolean);
+    procedure SetLineDirectives(const AEnabled: Boolean);
     procedure SetStatusCallback(const ACallback: TParseStatusCallback; const AUserData: Pointer = nil); override;
 
     // Error handling
@@ -264,7 +266,8 @@ begin
   FOptimizeLevel := olDebug;
   FSubsystem     := stConsole;
   FBuildMode     := bmExe;
-  FRawOutput     := False;
+  FRawOutput      := False;
+  FLineDirectives := False;
 
   FIncludePaths  := TList<string>.Create();
   FSourceFiles   := TList<string>.Create();
@@ -462,6 +465,11 @@ begin
   FRawOutput := AValue;
 end;
 
+procedure TParse.SetLineDirectives(const AEnabled: Boolean);
+begin
+  FLineDirectives := AEnabled;
+end;
+
 procedure TParse.SetStatusCallback(const ACallback: TParseStatusCallback; const AUserData: Pointer);
 begin
   inherited SetStatusCallback(ACallback, AUserData);
@@ -618,6 +626,7 @@ begin
       LCodeGen.SetStatusCallback(FStatusCallback.Callback, FStatusCallback.UserData);
       LCodeGen.SetErrors(FErrors);
       LCodeGen.SetConfig(FConfig);
+      LCodeGen.SetLineDirectives(FLineDirectives);
 
       if not LCodeGen.Generate(FProject) then
         Exit;

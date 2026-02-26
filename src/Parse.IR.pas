@@ -36,6 +36,9 @@ type
     FConfig:           TParseLangConfig;  // not owned
     FInFuncSignature:  Boolean;  // True between Func() and first statement/EndFunc
     FContext:          TDictionary<string, string>;  // key/value context store for emitters
+    FLineDirectives:   Boolean;  // When True, #line directives are emitted before each node
+    FLastLineFile:     string;   // Filename of the last emitted #line directive
+    FLastLineNum:      Integer;  // Line number of the last emitted #line directive
 
     // Returns the buffer for the given target
     function GetBuffer(const ATarget: TParseSourceFile): TStringBuilder;
@@ -52,6 +55,10 @@ type
 
     // Configuration — must be set before Generate()
     procedure SetConfig(const AConfig: TParseLangConfig);
+
+    // Enable or disable #line directive emission into the source buffer.
+    // When enabled, a #line N "file" is written before each dispatched node.
+    procedure SetLineDirectives(const AEnabled: Boolean);
 
     // ---- TParseIRBase virtuals (low-level primitives) ----
 
@@ -278,6 +285,9 @@ begin
   FConfig          := nil;
   FInFuncSignature := False;
   FContext         := TDictionary<string, string>.Create();
+  FLineDirectives  := False;
+  FLastLineFile     := '';
+  FLastLineNum      := 0;
 end;
 
 destructor TParseIR.Destroy();
@@ -291,6 +301,11 @@ end;
 procedure TParseIR.SetConfig(const AConfig: TParseLangConfig);
 begin
   FConfig := AConfig;
+end;
+
+procedure TParseIR.SetLineDirectives(const AEnabled: Boolean);
+begin
+  FLineDirectives := AEnabled;
 end;
 
 function TParseIR.GetBuffer(
@@ -368,10 +383,33 @@ end;
 
 procedure TParseIR.EmitNode(const ANode: TParseASTNodeBase);
 var
-  LHandler: TParseEmitHandler;
+  LHandler:  TParseEmitHandler;
+  LTok:      TParseToken;
+  LFilename: string;
 begin
   if ANode = nil then
     Exit;
+
+  // Emit a #line directive so debuggers map generated C++ back to the Pascal source.
+  // Written directly to the buffer at column 0 — preprocessor directives must
+  // never be indented.
+  if FLineDirectives then
+  begin
+    LTok := ANode.GetToken();
+    if (LTok.Filename <> '') and (LTok.Line > 0) then
+    begin
+      LFilename := LTok.Filename.Replace('\', '/');
+      // Only emit when the location actually changes — avoids duplicate
+      // #line directives from container nodes sharing the same source position.
+      if (LFilename <> FLastLineFile) or (LTok.Line <> FLastLineNum) then
+      begin
+        FLastLineFile := LFilename;
+        FLastLineNum  := LTok.Line;
+        FSourceBuffer.AppendLine('#line ' + IntToStr(LTok.Line) +
+          ' "' + LFilename + '"');
+      end;
+    end;
+  end;
 
   // Look up a registered handler for this node kind
   if (FConfig <> nil) and FConfig.GetEmitHandler(ANode.GetNodeKind(), LHandler) then
