@@ -51,6 +51,11 @@ type
     procedure Synchronize();
     {$HINTS ON}
 
+    // Advance past any comment tokens at the current position.
+    // Called by Check, Match, and Expect so grammar handler while-loops
+    // transparently skip comments without any language-specific code.
+    procedure SkipComments();
+
   public
     constructor Create(); override;
     destructor Destroy(); override;
@@ -176,6 +181,23 @@ begin
     Inc(FPos);
 end;
 
+procedure TParseParser.SkipComments();
+var
+  LKind: string;
+begin
+  // Advance past any line or block comment tokens so that grammar handler
+  // while-loops see the next meaningful token without language-specific guards.
+  while not IsAtEnd() do
+  begin
+    LKind := CurrentToken().Kind;
+    if (LKind = FConfig.GetLineCommentKind()) or
+       (LKind = FConfig.GetBlockCommentKind()) then
+      Advance()
+    else
+      Break;
+  end;
+end;
+
 procedure TParseParser.AddError(const AToken: TParseToken;
   const AMsg: string);
 begin
@@ -245,6 +267,7 @@ procedure TParseParser.Expect(const AKind: string);
 var
   LToken: TParseToken;
 begin
+  SkipComments();
   LToken := CurrentToken();
   if LToken.Kind = AKind then
     Advance()
@@ -256,6 +279,7 @@ end;
 
 function TParseParser.Check(const AKind: string): Boolean;
 begin
+  SkipComments();
   Result := CurrentToken().Kind = AKind;
 end;
 
