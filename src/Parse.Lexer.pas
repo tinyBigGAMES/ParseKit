@@ -419,8 +419,13 @@ begin
             ERR_LEXER_UNTERMINATED_COMMENT, RSLexerUnterminatedComment);
       end;
 
-      AToken      := MakeToken(FConfig.GetBlockCommentKind(),
-                       LStartLine, LStartCol, LStartOffset);
+      // Use the entry's own TokenKind when set; fall back to the global kind.
+      if LBC.TokenKind <> '' then
+        AToken := MakeToken(LBC.TokenKind,
+                    LStartLine, LStartCol, LStartOffset)
+      else
+        AToken := MakeToken(FConfig.GetBlockCommentKind(),
+                    LStartLine, LStartCol, LStartOffset);
       AToken.Text := FSource.Substring(LStartOffset,
                        FByteOffset - LStartOffset);
       Result      := True;

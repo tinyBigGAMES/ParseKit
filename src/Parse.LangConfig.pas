@@ -147,7 +147,8 @@ type
 
     // Comment styles
     function AddLineComment(const APrefix: string): TParseLangConfig;
-    function AddBlockComment(const AOpen, AClose: string): TParseLangConfig;
+    function AddBlockComment(const AOpen, AClose: string;
+      const ATokenKind: string = ''): TParseLangConfig;
 
     // String literal styles; AAllowEscape controls backslash escape processing
     function AddStringStyle(const AOpen, AClose, AKind: string;
@@ -566,15 +567,16 @@ begin
   Result := Self;
 end;
 
-function TParseLangConfig.AddBlockComment(const AOpen,
-  AClose: string): TParseLangConfig;
+function TParseLangConfig.AddBlockComment(const AOpen, AClose: string;
+  const ATokenKind: string): TParseLangConfig;
 var
   LEntry: TParseBlockCommentDef;
 begin
   if (AOpen <> '') and (AClose <> '') then
   begin
-    LEntry.OpenStr  := AOpen;
-    LEntry.CloseStr := AClose;
+    LEntry.OpenStr   := AOpen;
+    LEntry.CloseStr  := AClose;
+    LEntry.TokenKind := ATokenKind;
     FBlockComments.Add(LEntry);
   end;
   Result := Self;
@@ -1396,9 +1398,10 @@ begin
   LCount := AConfig.GetTableCount('block_comments');
   for LI := 0 to LCount - 1 do
   begin
-    LOpen  := AConfig.GetTableString('block_comments', LI, 'open',  '');
-    LClose := AConfig.GetTableString('block_comments', LI, 'close', '');
-    AddBlockComment(LOpen, LClose);
+    LOpen  := AConfig.GetTableString('block_comments', LI, 'open',       '');
+    LClose := AConfig.GetTableString('block_comments', LI, 'close',      '');
+    LKind  := AConfig.GetTableString('block_comments', LI, 'token_kind', '');
+    AddBlockComment(LOpen, LClose, LKind);
   end;
 
   LCount := AConfig.GetTableCount('string_styles');
@@ -1477,8 +1480,9 @@ begin
   for LBC in FBlockComments do
   begin
     LIdx := AConfig.AddTableEntry('block_comments');
-    AConfig.SetTableString('block_comments', LIdx, 'open',  LBC.OpenStr);
-    AConfig.SetTableString('block_comments', LIdx, 'close', LBC.CloseStr);
+    AConfig.SetTableString('block_comments', LIdx, 'open',       LBC.OpenStr);
+    AConfig.SetTableString('block_comments', LIdx, 'close',      LBC.CloseStr);
+    AConfig.SetTableString('block_comments', LIdx, 'token_kind', LBC.TokenKind);
   end;
 
   for LSS in FStringStyles do

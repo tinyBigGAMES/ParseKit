@@ -95,8 +95,9 @@ type
 
   { TParseBlockCommentDef }
   TParseBlockCommentDef = record
-    OpenStr:  string;
-    CloseStr: string;
+    OpenStr:   string;
+    CloseStr:  string;
+    TokenKind: string;  // when non-empty, overrides the global block-comment kind
   end;
 
   { TParseStringStyleDef }
