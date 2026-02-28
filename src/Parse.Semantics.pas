@@ -550,7 +550,7 @@ begin
     DoVisitNode(ARoot);
 
   // Analysis succeeded if no errors were reported.
-  Result := (FErrors = nil) or (FErrors.Count() = 0);
+  Result := (FErrors = nil) or (FErrors.ErrorCount() = 0);
 end;
 
 // -----------------------------------------------------------------------------
