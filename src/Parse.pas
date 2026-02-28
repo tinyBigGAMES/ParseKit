@@ -234,7 +234,7 @@ type
     function  HasErrors(): Boolean;
 
     // Pipeline
-    function  Compile(const AAutoRun: Boolean = True): Boolean;
+    function  Compile(const ABuild: Boolean = True; const AAutoRun: Boolean = True): Boolean;
     function  Run(): Cardinal;
     procedure Clear();
 
@@ -509,7 +509,7 @@ begin
     FErrors.Clear();
 end;
 
-function TParse.Compile(const AAutoRun: Boolean): Boolean;
+function TParse.Compile(const ABuild: Boolean; const AAutoRun: Boolean): Boolean;
 var
   LLexer:         TParseLexer;
   LParser:        TParseParser;
@@ -647,6 +647,13 @@ begin
   // Check for codegen errors before building
   if HasErrors() then
     Exit;
+
+  // Skip Zig build if caller only wants codegen (e.g. compiling a unit dependency)
+  if not ABuild then
+  begin
+    Result := True;
+    Exit;
+  end;
 
   // Step 5: Build via Zig
   FBuild.SetOutputCallback(FOutput.Callback, FOutput.UserData);
