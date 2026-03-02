@@ -436,7 +436,7 @@ begin
   if LStructural.StatementTerminator <> '' then
   begin
     if not IsAtEnd() then
-      Expect(LStructural.StatementTerminator);
+      Match(LStructural.StatementTerminator);
   end;
   Result := LExprNode;
 end;
