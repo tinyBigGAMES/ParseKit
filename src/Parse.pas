@@ -678,10 +678,14 @@ begin
   for LPath in FLinkLibraries do
     FBuild.AddLinkLibrary(LPath);
 
-  // Sync build settings — directives during parsing may have changed them
-  FTargetPlatform := FBuild.GetTarget();
-  FOptimizeLevel  := FBuild.GetOptimizeLevel();
-  FSubsystem      := FBuild.GetSubsystem();
+  // Sync build settings — codegen emit handlers (e.g. setPlatform) may have
+  // updated FTargetPlatform/FOptimizeLevel/FSubsystem/FBuildMode on this TParse
+  // instance after FBuild was first configured. Push the final values into FBuild
+  // now so the Zig toolchain uses what the source file requested.
+  FBuild.SetTarget(FTargetPlatform);
+  FBuild.SetOptimizeLevel(FOptimizeLevel);
+  FBuild.SetSubsystem(FSubsystem);
+  FBuild.SetBuildMode(FBuildMode);
 
   // Generate build.zig and compile
   if not FBuild.SaveBuildFile() then

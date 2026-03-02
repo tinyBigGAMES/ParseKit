@@ -19,6 +19,8 @@ implementation
 
 uses
   System.SysUtils,
+  System.Math,
+  System.StrUtils,
   Parse,
   UTest.Lexer,
   UTest.Parser,
@@ -29,7 +31,70 @@ uses
   ULang.Pascal,
   ULang.Basic,
   ULang.Lua,
-  ULang.Scheme;
+  ULang.Scheme,
+  ParseLang;
+
+procedure ShowErrors(const AParseLang: TParseLang);
+var
+  LErrors: TParseErrors;
+  LError:  TParseError;
+  LColor:  string;
+  LI:      Integer;
+begin
+  if not AParseLang.HasErrors() then
+    Exit;
+
+  LErrors := AParseLang.GetErrors();
+  if LErrors = nil then
+    Exit;
+
+  TParseUtils.PrintLn('');
+  TParseUtils.PrintLn(COLOR_WHITE + Format('Errors (%d):', [LErrors.Count()]));
+  for LI := 0 to LErrors.GetItems().Count - 1 do
+  begin
+    LError := LErrors.GetItems()[LI];
+    case LError.Severity of
+      esHint:    LColor := COLOR_CYAN;
+      esWarning: LColor := COLOR_YELLOW;
+      esError:   LColor := COLOR_RED;
+      esFatal:   LColor := COLOR_BOLD + COLOR_RED;
+    else
+      LColor := COLOR_WHITE;
+    end;
+    TParseUtils.PrintLn(LColor + LError.ToFullString());
+  end;
+end;
+
+procedure TestParseLang();
+var
+  LParseLang: TParseLang;
+begin
+  LParseLang := TParseLang.Create();
+  try
+    LParseLang.SetLangFile('..\parselang\mylang.parse');
+    LParseLang.SetSourceFile('..\parselang\hello.ml');
+    LParseLang.SetOutputPath('output');
+    LParseLang.SetStatusCallback(
+      procedure(const AText: string; const AUserData: Pointer)
+      begin
+        TParseUtils.PrintLn(AText);
+      end
+    );
+
+    LParseLang.SetOutputCallback(
+      procedure(const ALine: string; const AUserData: Pointer)
+      begin
+        TParseUtils.Print(ALine);
+      end
+    );
+
+    LParseLang.Compile(True, True);
+    ShowErrors(LParseLang);
+
+  finally
+    LParseLang.Free();
+  end;
+end;
 
 procedure RunTestbed();
 var
@@ -81,14 +146,17 @@ begin
     LLevel := olDebug;
     //LLevel := olReleaseSmall;
 
-    LNum := 1;
+    LNum := 98;
 
     case LNum of
       01: ULang.Pascal.Demo(LPlatform, LLevel);
       02: ULang.Basic.Demo(LPlatform, LLevel);
       03: ULang.Lua.Demo(LPlatform, LLevel);
       04: ULang.Scheme.Demo(LPlatform, LLevel);
+      98: TestParseLang();
     end;
+
+
   except
     on E: Exception do
     begin
