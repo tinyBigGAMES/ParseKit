@@ -39,13 +39,7 @@ uses
   ULang.Pascal in '..\languages\ULang.Pascal.pas',
   ULang.Basic in '..\languages\ULang.Basic.pas',
   ULang.Lua in '..\languages\ULang.Lua.pas',
-  ULang.Scheme in '..\languages\ULang.Scheme.pas',
-  ParseLang.CodeGen in '..\parselang\ParseLang.CodeGen.pas',
-  ParseLang.Grammar in '..\parselang\ParseLang.Grammar.pas',
-  ParseLang.Lexer in '..\parselang\ParseLang.Lexer.pas',
-  ParseLang in '..\parselang\ParseLang.pas',
-  ParseLang.Semantics in '..\parselang\ParseLang.Semantics.pas',
-  ParseLang.Common in '..\parselang\ParseLang.Common.pas';
+  ULang.Scheme in '..\languages\ULang.Scheme.pas';
 
 begin
   RunTestbed();

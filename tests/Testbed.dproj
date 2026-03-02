@@ -130,12 +130,6 @@
         <DCCReference Include="..\languages\ULang.Basic.pas"/>
         <DCCReference Include="..\languages\ULang.Lua.pas"/>
         <DCCReference Include="..\languages\ULang.Scheme.pas"/>
-        <DCCReference Include="..\parselang\ParseLang.CodeGen.pas"/>
-        <DCCReference Include="..\parselang\ParseLang.Grammar.pas"/>
-        <DCCReference Include="..\parselang\ParseLang.Lexer.pas"/>
-        <DCCReference Include="..\parselang\ParseLang.pas"/>
-        <DCCReference Include="..\parselang\ParseLang.Semantics.pas"/>
-        <DCCReference Include="..\parselang\ParseLang.Common.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
