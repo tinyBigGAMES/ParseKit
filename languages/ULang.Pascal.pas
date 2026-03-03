@@ -437,6 +437,10 @@ begin
       begin
         LNode := AParser.CreateNode('expr.call', ALeft.GetToken());
         LNode.SetAttr('call.name', TValue.From<string>(ALeft.GetToken().Text));
+        // ALeft is the callee ident node — name is now captured in the attribute.
+        // It was never added to the tree as a child, so we own it here and must
+        // free it to avoid an orphaned-node memory leak.
+        ALeft.Free();
         AParser.Consume();  // consume '('
         if not AParser.Check('delimiter.rparen') then
         begin
@@ -793,8 +797,6 @@ begin
         LName:       string;
         LReturnText: string;
         LReturnKind: string;
-        LResultNode: TParseASTNode;
-        LResultTok:  TParseToken;
         LI:          Integer;
       begin
         ANode.GetAttr('decl.name', LAttr);
@@ -805,16 +807,16 @@ begin
         // Visit param_decl children
         for LI := 0 to ANode.ChildCount() - 2 do
           ASem.VisitNode(ANode.GetChild(LI));
-        // Declare implicit 'Result' variable in function scope
+        // Declare implicit 'Result' in function scope. Point DeclNode at the
+        // func_decl node itself (already carries decl.return_type) — avoids
+        // creating a synthetic orphan node that is never parented to the AST
+        // tree and therefore never freed, causing a memory leak.
         ANode.GetAttr('decl.return_type', LAttr);
         LReturnText := LAttr.AsString;
         LReturnKind := LParse.Config().TypeTextToKind(LReturnText);
-        LResultTok  := ANode.GetToken();
-        LResultNode := TParseASTNode.CreateNode('stmt.var_decl', LResultTok);
-        LResultNode.SetAttr('var.type_text', TValue.From<string>(LReturnText));
-        LResultNode.SetAttr(PARSE_ATTR_TYPE_KIND, TValue.From<string>(LReturnKind));
-        LResultNode.SetAttr(PARSE_ATTR_STORAGE_CLASS, TValue.From<string>('local'));
-        ASem.DeclareSymbol('Result', LResultNode);
+        TParseASTNode(ANode).SetAttr(PARSE_ATTR_TYPE_KIND,
+          TValue.From<string>(LReturnKind));
+        ASem.DeclareSymbol('Result', ANode);
         // Visit body
         if ANode.ChildCount() > 0 then
           ASem.VisitNode(ANode.GetChild(ANode.ChildCount() - 1));

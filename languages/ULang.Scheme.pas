@@ -525,8 +525,6 @@ begin
         LParamIndex: Integer;
         LParamKind:  string;
         LBodyNode:   TParseASTNodeBase;
-        LFuncTok:    TParseToken;
-        LResultNode: TParseASTNode;
       begin
         ANode.GetAttr('decl.name', LAttr);
         LName := LAttr.AsString;
@@ -561,17 +559,11 @@ begin
            'expr.string', 'expr.ident', 'expr.bool']);
         TParseASTNode(ANode).SetAttr(PARSE_ATTR_TYPE_KIND,
           TValue.From<string>(LReturnKind));
-        // Declare function name as local return variable if not void
+        // Declare function name as local return variable if not void.
+        // Point DeclNode at ANode itself (already carries PARSE_ATTR_TYPE_KIND) to
+        // avoid creating a synthetic orphan node that is never freed.
         if LReturnKind <> 'type.void' then
-        begin
-          LFuncTok    := ANode.GetToken();
-          LResultNode := TParseASTNode.CreateNode('expr.define_var', LFuncTok);
-          LResultNode.SetAttr(PARSE_ATTR_TYPE_KIND,
-            TValue.From<string>(LReturnKind));
-          LResultNode.SetAttr(PARSE_ATTR_STORAGE_CLASS,
-            TValue.From<string>('local'));
-          ASem.DeclareSymbol(LName, LResultNode);
-        end;
+          ASem.DeclareSymbol(LName, ANode);
         ASem.VisitNode(LBodyNode);
         ASem.PopScope(ANode.GetToken());
       end);
@@ -998,6 +990,10 @@ begin
         IntToStr(LParse.GetLastExitCode()));
 
   finally
+    // Break the reference cycle: ParseSExpr captures Demo$ActRec, and
+    // Demo$ActRec holds ParseSExpr. Nilling it out before freeing LParse
+    // drops the extra refcount so the closure record is properly released.
+    ParseSExpr := nil;
     LParse.Free();
   end;
 end;

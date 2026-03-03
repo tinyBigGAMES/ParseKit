@@ -240,6 +240,10 @@ begin
       begin
         LNode := AParser.CreateNode('expr.call', ALeft.GetToken());
         LNode.SetAttr('call.name', TValue.From<string>(ALeft.GetToken().Text));
+        // ALeft is the callee ident node — name is now captured in the attribute.
+        // It was never added to the tree as a child, so we own it here and must
+        // free it to avoid an orphaned-node memory leak.
+        ALeft.Free();
         AParser.Consume();  // consume '('
         if not AParser.Check('delimiter.rparen') then
         begin
@@ -590,8 +594,6 @@ begin
         LParamIndex: Integer;
         LParamKind:  string;
         LBodyNode:   TParseASTNodeBase;
-        LFuncTok:    TParseToken;
-        LResultNode: TParseASTNode;
       begin
         ANode.GetAttr('decl.name', LAttr);
         LName := LAttr.AsString;
@@ -626,17 +628,11 @@ begin
           LReturnKind := 'type.void';
         TParseASTNode(ANode).SetAttr(PARSE_ATTR_TYPE_KIND,
           TValue.From<string>(LReturnKind));
-        // Declare function name as local variable for 'Add = a + b' return pattern
+        // Declare function name as local variable for return-by-assignment pattern.
+        // Point DeclNode at ANode itself (already carries PARSE_ATTR_TYPE_KIND) to
+        // avoid creating a synthetic orphan node that is never freed.
         if LReturnKind <> 'type.void' then
-        begin
-          LFuncTok    := ANode.GetToken();
-          LResultNode := TParseASTNode.CreateNode('stmt.local_decl', LFuncTok);
-          LResultNode.SetAttr(PARSE_ATTR_TYPE_KIND,
-            TValue.From<string>(LReturnKind));
-          LResultNode.SetAttr(PARSE_ATTR_STORAGE_CLASS,
-            TValue.From<string>('local'));
-          ASem.DeclareSymbol(LName, LResultNode);
-        end;
+          ASem.DeclareSymbol(LName, ANode);
         // Visit body
         ASem.VisitNode(LBodyNode);
         ASem.PopScope(ANode.GetToken());
