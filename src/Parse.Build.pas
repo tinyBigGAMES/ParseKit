@@ -1407,7 +1407,7 @@ begin
     LOutputFile := TPath.Combine(FOutputPath, TPath.Combine('zig-out', TPath.Combine('lib', GetOutputFilename())))
   else
     LOutputFile := TPath.Combine(FOutputPath, TPath.Combine('zig-out', TPath.Combine('bin', GetOutputFilename())));
-  Status(RSZigBuildOutput, [TParseUtils.NormalizePath(LOutputFile)]);
+  Status(RSZigBuildOutput, [TParseUtils.NormalizePath(TPath.GetFullPath(LOutputFile))]);
 
   // Copy DLLs to output directory
   if FCopyDLLs.Count > 0 then
