@@ -1417,7 +1417,7 @@ begin
     begin
       LSrcPath := FCopyDLLs[LI];
       if not TPath.IsPathRooted(LSrcPath) then
-        LSrcPath := TPath.Combine(FOutputPath, LSrcPath);
+        LSrcPath := TPath.Combine(TPath.GetDirectoryName(ParamStr(0)), LSrcPath);
 
       // Skip copy if src is already in dest dir
       if SameText(TPath.GetFullPath(TPath.GetDirectoryName(LSrcPath)), TPath.GetFullPath(LDestDir)) then
