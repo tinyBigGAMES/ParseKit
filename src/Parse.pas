@@ -165,6 +165,9 @@ type
     FSourceFiles:   TList<string>;
     FLibraryPaths:  TList<string>;
     FLinkLibraries: TList<string>;
+    FDefines:       TDictionary<string, string>;
+    FUndefines:     TList<string>;
+    FCopyDLLs:      TList<string>;
     FTargetPlatform: TParseTargetPlatform;
     FSubsystem:     TParseSubsystemType;
     FOptimizeLevel: TParseOptimizeLevel;
@@ -207,11 +210,30 @@ type
     procedure SetOutputPath(const APath: string);
     function  GetOutputPath(): string;
 
-    // Build paths
-    procedure AddIncludePath(const APath: string);
+    // Source files
     procedure AddSourceFile(const ASourceFile: string);
+    procedure ClearSourceFiles();
+    // Include paths
+    procedure AddIncludePath(const APath: string);
+    procedure ClearIncludePaths();
+    // Library paths
     procedure AddLibraryPath(const APath: string);
+    procedure ClearLibraryPaths();
+    // Link libraries
     procedure AddLinkLibrary(const ALibrary: string);
+    procedure ClearLinkLibraries();
+    // Defines
+    procedure SetDefine(const ADefineName: string); overload;
+    procedure SetDefine(const ADefineName, AValue: string); overload;
+    procedure ClearDefines();
+    function  HasDefine(const ADefineName: string): Boolean;
+    // Undefines
+    procedure UnsetDefine(const ADefineName: string);
+    procedure ClearUndefines();
+    function  HasUndefine(const ADefineName: string): Boolean;
+    // Copy DLLs
+    procedure AddCopyDLL(const ADLLPath: string);
+    procedure ClearCopyDLLs();
 
     // Build configuration
     procedure SetTargetPlatform(const APlatform: TParseTargetPlatform);
@@ -273,6 +295,9 @@ begin
   FSourceFiles   := TList<string>.Create();
   FLibraryPaths  := TList<string>.Create();
   FLinkLibraries := TList<string>.Create();
+  FDefines       := TDictionary<string, string>.Create();
+  FUndefines     := TList<string>.Create();
+  FCopyDLLs      := TList<string>.Create();
 
   FConfig := TParseLangConfig.Create();
   FBuild  := nil;
@@ -290,6 +315,9 @@ begin
   FreeAndNil(FSourceFiles);
   FreeAndNil(FLibraryPaths);
   FreeAndNil(FLinkLibraries);
+  FreeAndNil(FDefines);
+  FreeAndNil(FUndefines);
+  FreeAndNil(FCopyDLLs);
 
   if FOwnsErrors then
     FreeAndNil(FErrors);
@@ -380,13 +408,7 @@ begin
   Result := FOutputPath;
 end;
 
-// Build paths
-
-procedure TParse.AddIncludePath(const APath: string);
-begin
-  if (APath <> '') and (FIncludePaths.IndexOf(APath) < 0) then
-    FIncludePaths.Add(APath);
-end;
+// Source files
 
 procedure TParse.AddSourceFile(const ASourceFile: string);
 begin
@@ -394,16 +416,133 @@ begin
     FSourceFiles.Add(ASourceFile);
 end;
 
+procedure TParse.ClearSourceFiles();
+begin
+  FSourceFiles.Clear();
+  if FBuild <> nil then
+    FBuild.ClearSourceFiles();
+end;
+
+// Include paths
+
+procedure TParse.AddIncludePath(const APath: string);
+begin
+  if (APath <> '') and (FIncludePaths.IndexOf(APath) < 0) then
+    FIncludePaths.Add(APath);
+end;
+
+procedure TParse.ClearIncludePaths();
+begin
+  FIncludePaths.Clear();
+  if FBuild <> nil then
+    FBuild.ClearIncludePaths();
+end;
+
+// Library paths
+
 procedure TParse.AddLibraryPath(const APath: string);
 begin
   if (APath <> '') and (FLibraryPaths.IndexOf(APath) < 0) then
     FLibraryPaths.Add(APath);
 end;
 
+procedure TParse.ClearLibraryPaths();
+begin
+  FLibraryPaths.Clear();
+  if FBuild <> nil then
+    FBuild.ClearLibraryPaths();
+end;
+
+// Link libraries
+
 procedure TParse.AddLinkLibrary(const ALibrary: string);
 begin
   if (ALibrary <> '') and (FLinkLibraries.IndexOf(ALibrary) < 0) then
     FLinkLibraries.Add(ALibrary);
+end;
+
+procedure TParse.ClearLinkLibraries();
+begin
+  FLinkLibraries.Clear();
+  if FBuild <> nil then
+    FBuild.ClearLinkLibraries();
+end;
+
+// Defines
+
+procedure TParse.SetDefine(const ADefineName: string);
+begin
+  if ADefineName <> '' then
+  begin
+    FDefines.AddOrSetValue(ADefineName, '');
+    if FBuild <> nil then
+      FBuild.SetDefine(ADefineName);
+  end;
+end;
+
+procedure TParse.SetDefine(const ADefineName, AValue: string);
+begin
+  if ADefineName <> '' then
+  begin
+    FDefines.AddOrSetValue(ADefineName, AValue);
+    if FBuild <> nil then
+      FBuild.SetDefine(ADefineName, AValue);
+  end;
+end;
+
+procedure TParse.ClearDefines();
+begin
+  FDefines.Clear();
+  if FBuild <> nil then
+    FBuild.ClearDefines();
+end;
+
+function TParse.HasDefine(const ADefineName: string): Boolean;
+begin
+  Result := FDefines.ContainsKey(ADefineName);
+end;
+
+// Undefines
+
+procedure TParse.UnsetDefine(const ADefineName: string);
+begin
+  if (ADefineName <> '') and (FUndefines.IndexOf(ADefineName) < 0) then
+  begin
+    FUndefines.Add(ADefineName);
+    if FBuild <> nil then
+      FBuild.UnsetDefine(ADefineName);
+  end;
+end;
+
+procedure TParse.ClearUndefines();
+begin
+  FUndefines.Clear();
+  if FBuild <> nil then
+    FBuild.ClearUndefines();
+end;
+
+function TParse.HasUndefine(const ADefineName: string): Boolean;
+begin
+  Result := FUndefines.IndexOf(ADefineName) >= 0;
+end;
+
+// Copy DLLs
+
+procedure TParse.AddCopyDLL(const ADLLPath: string);
+begin
+  if (ADLLPath <> '') and (FCopyDLLs.IndexOf(ADLLPath) < 0) then
+  begin
+    FCopyDLLs.Add(ADLLPath);
+    if FBuild <> nil then
+      FBuild.AddCopyDLL(ADLLPath);
+  end;
+end;
+
+procedure TParse.ClearCopyDLLs();
+begin
+  FCopyDLLs.Clear();
+  if FBuild <> nil then
+    FBuild.ClearCopyDLLs();
 end;
 
 // Build configuration
@@ -518,6 +657,7 @@ var
   LGeneratedPath: string;
   LProjectName:   string;
   LPath:          string;
+  LPair:          TPair<string, string>;
 begin
   Result := False;
   Clear();
@@ -677,6 +817,16 @@ begin
 
   for LPath in FLinkLibraries do
     FBuild.AddLinkLibrary(LPath);
+
+  // Wire defines, undefines, and copy DLLs into build
+  for LPair in FDefines do
+    FBuild.SetDefine(LPair.Key, LPair.Value);
+
+  for LPath in FUndefines do
+    FBuild.UnsetDefine(LPath);
+
+  for LPath in FCopyDLLs do
+    FBuild.AddCopyDLL(LPath);
 
   // Sync build settings — codegen emit handlers (e.g. setPlatform) may have
   // updated FTargetPlatform/FOptimizeLevel/FSubsystem/FBuildMode on this TParse
